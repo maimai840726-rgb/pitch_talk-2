@@ -1671,12 +1671,29 @@ function getSpeechRecCtor(){
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
 
+const NUM_WORDS = {'0':'zero','1':'one','2':'two','3':'three','4':'four','5':'five','6':'six','7':'seven','8':'eight','9':'nine','10':'ten','11':'eleven','12':'twelve','13':'thirteen','14':'fourteen','15':'fifteen','16':'sixteen','17':'seventeen','18':'eighteen','19':'nineteen','20':'twenty'};
+
 function normalizeForCompare(s){
   return String(s || '')
     .toLowerCase()
+    .replace(/[-_/]/g, ' ')
     .replace(/[^\p{L}\p{N}\s]/gu, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function expandNumberWords(tokens){
+  const out = [];
+  tokens.forEach(tok=>{
+    out.push(tok);
+    if(/^[0-9]+$/.test(tok)){
+      if(NUM_WORDS[tok]) out.push(NUM_WORDS[tok]);
+      if(tok.length > 1){
+        tok.split('').forEach(d=>{ if(NUM_WORDS[d]) out.push(NUM_WORDS[d]); });
+      }
+    }
+  });
+  return out;
 }
 
 function speechMatchScore(heard, target){
@@ -1684,7 +1701,7 @@ function speechMatchScore(heard, target){
   const t = normalizeForCompare(target);
   if(!h || !t) return 0;
   if(h === t) return 1;
-  const hWords = h.split(' ').filter(Boolean);
+  const hWords = expandNumberWords(h.split(' ').filter(Boolean));
   const tWords = t.split(' ').filter(Boolean);
   if(tWords.length === 0) return 0;
   const matched = tWords.filter(w=>hWords.includes(w)).length;
