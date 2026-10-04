@@ -1859,6 +1859,7 @@ document.getElementById('mic-btn').addEventListener('click', ()=>{
 
   recognition.onresult = (e)=>{
     const transcript = e.results[0][0].transcript;
+    try{ recognition.stop(); }catch(err){}
     handleSpeechResult(transcript);
   };
   recognition.onerror = (e)=>{
